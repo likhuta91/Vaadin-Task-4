@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+	<changeSet author="melamory" id="init">
+		<!-- ================================= Hotels ================================= -->
+		<createTable tableName="HOTEL">
+			<column autoIncrement="true" name="ID" type="BIGINT">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="OPTLOCK" type="BIGINT" />
+			<column name="NAME" type="VARCHAR(255)" />
+			<column name="ADDRESS" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="RATING" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="OPERATES_FROM" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="CATEGORY" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="URL" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+
+	<changeSet author="melamory" id="CREATE_CATEGORY">
+		<createTable tableName="CATEGORY">
+			<column autoIncrement="true" name="ID" type="BIGINT">
+				<constraints primaryKey="true" />
+			</column>
+			<column name="OPTLOCK" type="BIGINT" defaultValue="0">
+				<constraints nullable="false" />
+			</column>
+			<column name="NAME" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<rollback>
+			<dropTable tableName="CATEGORY" />
+		</rollback>
+	</changeSet>
+
+	<changeSet author="melamory" id="UPDATE_HOTEL_CATEGORY">
+		<modifyDataType tableName="HOTEL" columnName="CATEGORY"
+			newDataType="BIGINT" />
+
+		<rollback>
+			<modifyDataType tableName="HOTEL" columnName="CATEGORY"
+				newDataType="VARCHAR(255)" />
+		</rollback>
+	</changeSet>
+
+	<changeSet author="melamory" id="UPDATE_HOTEL_OPTLOCK">
+		<addDefaultValue columnName="OPTLOCK" tableName="HOTEL"
+			defaultValue="0" />
+	</changeSet>
+
+	<changeSet author="melamory" id="ADD_FOREIGN_KEY_CATEGORY">
+		<addForeignKeyConstraint constraintName="CATEGORY"
+			referencedTableName="CATEGORY" baseColumnNames="CATEGORY"
+			baseTableName="HOTEL" referencedColumnNames="ID" />
+	</changeSet>
+
+	<changeSet author="melamory" id="UPDATE_HOTEL_DESCRIPTION">
+		<addColumn tableName="HOTEL">
+			<column name="DESCRIPTION" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+		</addColumn>
+		<rollback>
+			<dropColumn tableName="HOTEL" columnName="DESCRIPTION" />
+		</rollback>
+	</changeSet>
+
+	<changeSet author="melamory" id="INSERT_CATEGORIES">
+		<insert tableName="CATEGORY">
+			<column name="NAME" value="Hotel"></column>
+		</insert>
+		<insert tableName="CATEGORY">
+			<column name="NAME" value="Hostel"></column>
+		</insert>
+		<insert tableName="CATEGORY">
+			<column name="NAME" value="GuestHouse"></column>
+		</insert>
+		<insert tableName="CATEGORY">
+			<column name="NAME" value="Appartments"></column>
+		</insert>
+	</changeSet>
+
+	<changeSet author="melamory" id="INSERT_HOTELS">
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Phetmeuangsam Hotel"></column>
+			<column name="ADDRESS"
+				value="Ban Phanhxai, Xumnuea, Xam Nua, 01000 Xam Nua, Laos"></column>
+			<column name="RATING" value="2"></column>
+			<column name="OPERATES_FROM" value="946080000000"></column>
+			<column name="CATEGORY" value="4"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/phetmisay.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Phakchai Hotell"></column>
+			<column name="ADDRESS"
+				value="137 Ban Wattay Mueng Sikothabong Vientiane Laos, 01000 Vientiane, Laos"></column>
+			<column name="RATING" value="2"></column>
+			<column name="OPERATES_FROM" value="946080000000"></column>
+			<column name="CATEGORY" value="4"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/phakchai.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Pakse Mekong Hotel"></column>
+			<column name="ADDRESS"
+				value="No 062 Khemkong Road, Pakse District, Champasak, Laos, 01000 Pakse, Laos"></column>
+			<column name="RATING" value="2"></column>
+			<column name="OPERATES_FROM" value="914544000000"></column>
+			<column name="CATEGORY" value="2"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/pakse-mekong.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Niraxay Apartment"></column>
+			<column name="ADDRESS"
+				value="Samsenthai Road Ban Sihom , 01000 Vientiane, Laos"></column>
+			<column name="RATING" value="2"></column>
+			<column name="OPERATES_FROM" value="883008000000"></column>
+			<column name="CATEGORY" value="2"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/niraxay-apartment.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Niny Backpacker hotel"></column>
+			<column name="ADDRESS"
+				value="Next to Wat Mixay, Norkeokhunmane Road., 01000 Vientiane, Laos"></column>
+			<column name="RATING" value="1"></column>
+			<column name="OPERATES_FROM" value="851472000000"></column>
+			<column name="CATEGORY" value="2"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/niny-backpacker.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+		<insert tableName="HOTEL">
+			<column name="NAME" value="Nammavong Guesthouse"></column>
+			<column name="ADDRESS"
+				value="Ban phone houang Sisalearmsak Road , 06000 Luang Prabang, Laos"></column>
+			<column name="RATING" value="2"></column>
+			<column name="OPERATES_FROM" value="819936000000"></column>
+			<column name="CATEGORY" value="3"></column>
+			<column name="URL"
+				value="https://www.booking.com/hotel/la/nammavong-guesthouse.en-gb.html"></column>
+			<column name="DESCRIPTION" value=""></column>
+		</insert>
+	</changeSet>
+
+</databaseChangeLog>
