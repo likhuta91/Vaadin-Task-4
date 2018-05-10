@@ -21,8 +21,8 @@ public class CategoryEditForm extends FormLayout {
 	private Binder<Category> binder = new Binder<>(Category.class);
 	private TextField name = new TextField("Name");
 
-	private Button save = ButtonHelper.getSaveButton("Save");
-	private Button close = ButtonHelper.getCloseButton("Close");
+	private Button save = ButtonHelper.getSaveButton();
+	private Button close = ButtonHelper.getCloseButton();
 
 	public CategoryEditForm(CategoryView categoryView) {
 

@@ -24,7 +24,7 @@ public class HotelService {
 	}
 
 	public static HotelService getInstance() {
-		
+
 		if (instance == null) {
 			instance = new HotelService();
 		}
@@ -36,7 +36,7 @@ public class HotelService {
 	}
 
 	public synchronized List<Hotel> findAll(String nameFilterValue, String addressFilterValue) {
-		System.out.println(  "create connection called from " +Thread.currentThread().getStackTrace()[2] );
+
 		session = HibernateSessionFactory.getHibernateSession();
 		ArrayList<Hotel> arrayList = new ArrayList<>();
 		List<Hotel> allHotel = null;
@@ -55,11 +55,11 @@ public class HotelService {
 
 			if (namePasses && addessPpasses) {
 				try {
-					if(hotel.getCategory()!=null) {
+					if (hotel.getCategory() != null) {
 						hotel.setCategory(hotel.getCategory().clone());
-					}					
+					}
 					arrayList.add(hotel.clone());
-					
+
 				} catch (CloneNotSupportedException ex) {
 					LOGGER.log(Level.SEVERE, null, ex);
 				}
@@ -72,7 +72,7 @@ public class HotelService {
 				return (int) (o2.getId() - o1.getId());
 			}
 		});
-		
+
 		if (session.isOpen()) {
 			session.close();
 		}
@@ -86,7 +86,7 @@ public class HotelService {
 	}
 
 	public synchronized void delete(Set<Hotel> value) {
-		System.out.println(  "create connection called from " +Thread.currentThread().getStackTrace()[2] );
+
 		session = HibernateSessionFactory.getHibernateSession();
 		try {
 
@@ -101,7 +101,7 @@ public class HotelService {
 		} catch (Exception e) {
 			session.getTransaction().rollback();
 			LOGGER.log(Level.SEVERE, "Hotel is not delete." + e.getMessage());
-			
+
 		} finally {
 			if (session.isOpen()) {
 				session.close();
@@ -110,9 +110,7 @@ public class HotelService {
 	}
 
 	public synchronized void save(Hotel entry) {
-		 
-		System.out.println(  "create connection called from " +Thread.currentThread().getStackTrace()[2] );
-		    
+
 		session = HibernateSessionFactory.getHibernateSession();
 		if (entry == null) {
 			LOGGER.log(Level.SEVERE, "Hotel is null.");
@@ -128,7 +126,7 @@ public class HotelService {
 		} catch (Exception e) {
 			session.getTransaction().rollback();
 			LOGGER.log(Level.SEVERE, "Hotel is not save." + e.getMessage());
-			
+
 		} finally {
 			if (session.isOpen()) {
 				session.close();

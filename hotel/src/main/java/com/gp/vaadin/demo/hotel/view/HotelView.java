@@ -16,6 +16,7 @@ import com.gp.vaadin.demo.hotel.HotelUI;
 import com.gp.vaadin.demo.hotel.MenuNavigator;
 import com.gp.vaadin.demo.hotel.PopupUpdateHotelContent;
 import com.gp.vaadin.demo.hotel.helper.ButtonHelper;
+import com.gp.vaadin.demo.hotel.helper.HotelHelper;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.ValueChangeMode;
@@ -46,16 +47,16 @@ public class HotelView extends VerticalLayout implements View {
 	final TextField nameFilter = new TextField();
 	final TextField addressFilter = new TextField();
 
-	final Button addHotel = ButtonHelper.getAddButton("Add hotel");
-	final Button deleteHotel = ButtonHelper.getDeleteButton("Delete hotel");
-	final Button editHotel = ButtonHelper.getEditButton("Edit hotel");
+	final Button addHotel = ButtonHelper.getAddButton();
+	final Button deleteHotel = ButtonHelper.getDeleteButton();
+	final Button editHotel = ButtonHelper.getEditButton();
 
 	final VerticalLayout layout = new VerticalLayout();
 
 	final PopupUpdateHotelContent popupContent = PopupUpdateHotelContent.getInstance(this);
 
 	final PopupView popup = new PopupView(null, popupContent);
-	final Button bulkUpdateHotel = ButtonHelper.getUpdateButton("Bulk Update hotel");
+	final Button bulkUpdateHotel = ButtonHelper.getUpdateButton("Bulk Update");
 
 	public HotelView(HotelUI ui) {
 
@@ -63,17 +64,17 @@ public class HotelView extends VerticalLayout implements View {
 		this.menuNavigator = new MenuNavigator(ui);
 
 		// grid
-		hotelGrid.addColumn(Hotel::getName).setCaption("Name");
-		hotelGrid.addColumn(Hotel::getAddress).setCaption("Address");
-		hotelGrid.addColumn(Hotel::getRating).setCaption("Rating");
+		hotelGrid.addColumn(Hotel::getName).setCaption(HotelHelper.NAME);
+		hotelGrid.addColumn(Hotel::getAddress).setCaption(HotelHelper.ADDRESS);
+		hotelGrid.addColumn(Hotel::getRating).setCaption(HotelHelper.RATING);
 		hotelGrid.addColumn(hotel -> Instant.ofEpochMilli(new Date(hotel.getOperatesFrom()).getTime())
-				.atZone(ZoneId.systemDefault()).toLocalDate()).setCaption("Operates From");
-		hotelGrid.addColumn(Hotel::getCategoryName).setCaption("Category");
+				.atZone(ZoneId.systemDefault()).toLocalDate()).setCaption(HotelHelper.OPERATES_FROM);
+		hotelGrid.addColumn(Hotel::getCategoryName).setCaption(HotelHelper.CATEGORY);
 
-		hotelGrid.addColumn(Hotel::getDescription).setCaption("Description");
+		hotelGrid.addColumn(Hotel::getDescription).setCaption(HotelHelper.DESCRIPTION);
 		Grid.Column<Hotel, String> htmlColumn = hotelGrid.addColumn(
 				hotel -> "<a href='" + hotel.getUrl() + "' target='_blank'>hotel info</a>", new HtmlRenderer());
-		htmlColumn.setCaption("Url");
+		htmlColumn.setCaption(HotelHelper.URL);
 
 		hotelGrid.setWidth(100, Unit.PERCENTAGE);
 		hotelGrid.setHeight("100%");
@@ -111,7 +112,6 @@ public class HotelView extends VerticalLayout implements View {
 			deleteHotel.setEnabled(false);
 			editForm.setVisible(false);
 			updateList();
-
 		});
 
 		editHotel.addClickListener(c -> {
@@ -122,15 +122,6 @@ public class HotelView extends VerticalLayout implements View {
 
 		popup.setHideOnMouseOut(false);
 		bulkUpdateHotel.setEnabled(false);
-
-		/*
-		 * bulkUpdateHotel.addClickListener(e -> { Set<Hotel> updateCandidate =
-		 * hotelGrid.getSelectedItems(); popup = new PopupView(null, new
-		 * PopupUpdateHotelContent(updateCandidate,this));
-		 * controls.removeAllComponents(); controls.addComponents(nameFilter,
-		 * addressFilter, addHotel, deleteHotel, editHotel, bulkUpdateHotel,popup);
-		 * popup.setPopupVisible(true); });
-		 */
 
 		bulkUpdateHotel.addClickListener(e -> {
 			Set<Hotel> updateCandidate = hotelGrid.getSelectedItems();
@@ -180,7 +171,5 @@ public class HotelView extends VerticalLayout implements View {
 		editForm.setVisible(false);
 		Notification.show("Welcome in hotel menu!");
 	}
-	
-	
 
 }

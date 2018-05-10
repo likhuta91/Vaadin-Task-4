@@ -33,9 +33,9 @@ public class CategoryView extends VerticalLayout implements View {
 	final Grid<Category> categoryGrid = new Grid<>();
 	final CategoryEditForm editForm = new CategoryEditForm(this);
 
-	final Button addCategory = ButtonHelper.getAddButton("Add category");
-	final Button deleteCategory = ButtonHelper.getDeleteButton("Delete category");
-	final Button editCategory = ButtonHelper.getEditButton("Edit category");
+	final Button addCategory = ButtonHelper.getAddButton();
+	final Button deleteCategory = ButtonHelper.getDeleteButton();
+	final Button editCategory = ButtonHelper.getEditButton();
 
 	final VerticalLayout layout = new VerticalLayout();
 
