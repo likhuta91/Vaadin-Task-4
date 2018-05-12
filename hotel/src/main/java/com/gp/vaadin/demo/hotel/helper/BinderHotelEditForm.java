@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.gp.vaadin.demo.hotel.Category;
 import com.gp.vaadin.demo.hotel.CategoryService;
 import com.gp.vaadin.demo.hotel.Hotel;
+import com.gp.vaadin.demo.hotel.HotelService;
 import com.gp.vaadin.demo.hotel.converter.LocalDateToLongConverter;
 import com.vaadin.data.Binder;
 import com.vaadin.data.ValidationResult;
@@ -20,6 +21,7 @@ import com.vaadin.ui.TextField;
 public class BinderHotelEditForm {
 
 	final CategoryService categoryService = CategoryService.getInstance();
+	final HotelService hotelService = HotelService.getInstance();
 
 	private Binder<Hotel> binder = new Binder<>(Hotel.class);
 	private TextField name = new TextField();
@@ -32,8 +34,6 @@ public class BinderHotelEditForm {
 
 	@SuppressWarnings("serial")
 	public BinderHotelEditForm(boolean withCaption) {
-
-		operatesFrom.setDefaultValue(LocalDate.now());
 
 		name.setWidth(100, Sizeable.Unit.PERCENTAGE);
 		address.setWidth(100, Sizeable.Unit.PERCENTAGE);
@@ -100,6 +100,7 @@ public class BinderHotelEditForm {
 		binder.forField(url).asRequired("Please enter a website address").bind(Hotel::getUrl, Hotel::setUrl);
 
 		category.setItems(categoryService.findAll());
+
 	}
 
 	public Binder<Hotel> getBinder() {

@@ -32,35 +32,37 @@ public class CategoryService {
 
 	public synchronized List<Category> findAll() {
 
-		session = HibernateSessionFactory.getHibernateSession();
-		ArrayList<Category> arrayList = new ArrayList<>();
-		List<Category> allCategory = null;
+		try {
+			session = HibernateSessionFactory.getHibernateSession();
+			ArrayList<Category> arrayList = new ArrayList<>();
+			List<Category> allCategory = null;
 
-		CriteriaBuilder builder = session.getCriteriaBuilder();
-		CriteriaQuery<Category> criteria = builder.createQuery(Category.class);
-		criteria.from(Category.class);
-		allCategory = session.createQuery(criteria).getResultList();
+			CriteriaBuilder builder = session.getCriteriaBuilder();
+			CriteriaQuery<Category> criteria = builder.createQuery(Category.class);
+			criteria.from(Category.class);
+			allCategory = session.createQuery(criteria).getResultList();
 
-		for (Category category : allCategory) {
-			try {
-				arrayList.add(category.clone());
-			} catch (CloneNotSupportedException ex) {
-				LOGGER.log(Level.SEVERE, null, ex);
+			for (Category category : allCategory) {
+				try {
+					arrayList.add(category.clone());
+				} catch (CloneNotSupportedException ex) {
+					LOGGER.log(Level.SEVERE, null, ex);
+				}
+			}
+			Collections.sort(arrayList, new Comparator<Category>() {
+
+				@Override
+				public int compare(Category o1, Category o2) {
+					return (int) (o2.getId() - o1.getId());
+				}
+			});
+			return arrayList;
+		} finally {
+			if (session.isOpen()) {
+				session.close();
 			}
 		}
-		Collections.sort(arrayList, new Comparator<Category>() {
 
-			@Override
-			public int compare(Category o1, Category o2) {
-				return (int) (o2.getId() - o1.getId());
-			}
-		});
-
-		if (session.isOpen()) {
-			session.close();
-		}
-
-		return arrayList;
 	}
 
 	public synchronized void delete(Set<Category> value) {

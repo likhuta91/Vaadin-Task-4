@@ -18,8 +18,8 @@ public class HotelEditForm extends FormLayout {
 
 	private static final long serialVersionUID = -4322879393284784711L;
 	private HotelView hotelView;
-	private HotelService hotelService = HotelService.getInstance();
-	private CategoryService categoryService = CategoryService.getInstance();
+	final HotelService hotelService = HotelService.getInstance();
+	final CategoryService categoryService = CategoryService.getInstance();
 	private Hotel hotel;
 
 	private BinderHotelEditForm binderHotelEditForm = new BinderHotelEditForm(true);
@@ -40,21 +40,23 @@ public class HotelEditForm extends FormLayout {
 
 		buttons.setWidth(100, Sizeable.Unit.PERCENTAGE);
 
-		save.addClickListener(e -> save());
+		save.addClickListener(e -> save(hotel));
 		close.addClickListener(e -> setVisible(false));
 	}
 
-	private void save() {
+	public void save(Hotel h) {
 		if (binderHotelEditForm.getBinder().isValid()) {
+
 			try {
-				binderHotelEditForm.getBinder().writeBean(hotel);
+				binderHotelEditForm.getBinder().writeBean(h);
 			} catch (ValidationException e) {
 				Notification.show("Unable to save!" + e.getMessage(), Type.HUMANIZED_MESSAGE);
 			}
-			hotelService.save(hotel);
+
+			hotelService.save(h);
 			exit();
 		} else {
-			Notification.show("Unable to save! Please review errors and fix them.", Type.ERROR_MESSAGE);
+			Notification.show("Unable to save! Please review errors and fix them.", Type.WARNING_MESSAGE);
 		}
 	}
 

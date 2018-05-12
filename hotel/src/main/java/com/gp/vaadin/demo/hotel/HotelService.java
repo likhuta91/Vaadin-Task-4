@@ -37,46 +37,49 @@ public class HotelService {
 
 	public synchronized List<Hotel> findAll(String nameFilterValue, String addressFilterValue) {
 
-		session = HibernateSessionFactory.getHibernateSession();
-		ArrayList<Hotel> arrayList = new ArrayList<>();
-		List<Hotel> allHotel = null;
+		try {
+			session = HibernateSessionFactory.getHibernateSession();
+			ArrayList<Hotel> arrayList = new ArrayList<>();
+			List<Hotel> allHotel = null;
 
-		CriteriaBuilder builder = session.getCriteriaBuilder();
-		CriteriaQuery<Hotel> criteria = builder.createQuery(Hotel.class);
-		criteria.from(Hotel.class);
-		Query<Hotel> q = session.createQuery(criteria);
+			CriteriaBuilder builder = session.getCriteriaBuilder();
+			CriteriaQuery<Hotel> criteria = builder.createQuery(Hotel.class);
+			criteria.from(Hotel.class);
+			Query<Hotel> q = session.createQuery(criteria);
 
-		allHotel = q.getResultList();
+			allHotel = q.getResultList();
 
-		for (Hotel hotel : allHotel) {
+			for (Hotel hotel : allHotel) {
 
-			boolean namePasses = passesFilter(hotel.getName(), nameFilterValue);
-			boolean addessPpasses = passesFilter(hotel.getAddress(), addressFilterValue);
+				boolean namePasses = passesFilter(hotel.getName(), nameFilterValue);
+				boolean addessPpasses = passesFilter(hotel.getAddress(), addressFilterValue);
 
-			if (namePasses && addessPpasses) {
-				try {
-					if (hotel.getCategory() != null) {
-						hotel.setCategory(hotel.getCategory().clone());
+				if (namePasses && addessPpasses) {
+					try {
+						if (hotel.getCategory() != null) {
+							hotel.setCategory(hotel.getCategory().clone());
+						}
+						arrayList.add(hotel.clone());
+
+					} catch (CloneNotSupportedException ex) {
+						LOGGER.log(Level.SEVERE, null, ex);
 					}
-					arrayList.add(hotel.clone());
-
-				} catch (CloneNotSupportedException ex) {
-					LOGGER.log(Level.SEVERE, null, ex);
 				}
 			}
-		}
-		Collections.sort(arrayList, new Comparator<Hotel>() {
+			Collections.sort(arrayList, new Comparator<Hotel>() {
 
-			@Override
-			public int compare(Hotel o1, Hotel o2) {
-				return (int) (o2.getId() - o1.getId());
+				@Override
+				public int compare(Hotel o1, Hotel o2) {
+					return (int) (o2.getId() - o1.getId());
+				}
+			});
+			return arrayList;
+		} finally {
+			if (session.isOpen()) {
+				session.close();
 			}
-		});
-
-		if (session.isOpen()) {
-			session.close();
 		}
-		return arrayList;
+
 	}
 
 	private boolean passesFilter(String filter, String value) {
@@ -87,8 +90,8 @@ public class HotelService {
 
 	public synchronized void delete(Set<Hotel> value) {
 
-		session = HibernateSessionFactory.getHibernateSession();
 		try {
+			session = HibernateSessionFactory.getHibernateSession();
 
 			for (Hotel hotel : value) {
 				session.beginTransaction();
@@ -111,13 +114,15 @@ public class HotelService {
 
 	public synchronized void save(Hotel entry) {
 
-		session = HibernateSessionFactory.getHibernateSession();
-		if (entry == null) {
-			LOGGER.log(Level.SEVERE, "Hotel is null.");
-			return;
-		}
-
 		try {
+
+			session = HibernateSessionFactory.getHibernateSession();
+
+			if (entry == null) {
+				LOGGER.log(Level.SEVERE, "Hotel is null.");
+				return;
+			}
+
 			session.beginTransaction();
 			session.merge(entry);
 			session.flush();

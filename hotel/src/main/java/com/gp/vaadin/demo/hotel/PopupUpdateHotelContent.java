@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.gp.vaadin.demo.hotel.helper.BinderHotelEditForm;
 import com.gp.vaadin.demo.hotel.helper.ButtonHelper;
@@ -24,18 +26,18 @@ import com.vaadin.ui.Notification.Type;
 public class PopupUpdateHotelContent extends VerticalLayout {
 
 	private static final long serialVersionUID = 1L;
-	
+	private static final Logger LOGGER = Logger.getLogger(CategoryService.class.getName());
+
 	final HotelService hotelService = HotelService.getInstance();
 	final CategoryService categoryService = CategoryService.getInstance();
 	final HotelView hotelView;
 
-	
 	final VerticalLayout layout = new VerticalLayout();
 	final List<String> editableField = new ArrayList<>(
-			Arrays.asList(HotelHelper.NAME,HotelHelper.ADDRESS, HotelHelper.RATING, HotelHelper.OPERATES_FROM, HotelHelper.CATEGORY, HotelHelper.DESCRIPTION, HotelHelper.URL));
+			Arrays.asList(HotelHelper.NAME, HotelHelper.ADDRESS, HotelHelper.RATING, HotelHelper.OPERATES_FROM,
+					HotelHelper.CATEGORY, HotelHelper.DESCRIPTION, HotelHelper.URL));
 	private Set<Hotel> hotels;
 	private ComboBox<String> fieldBox;
-	private Object valueTextField;
 
 	private BinderHotelEditForm binderHotelEditForm = new BinderHotelEditForm(false);
 
@@ -43,6 +45,65 @@ public class PopupUpdateHotelContent extends VerticalLayout {
 	final Button cancel = ButtonHelper.getCancelButton();
 
 	private static PopupUpdateHotelContent instance;
+
+	private PopupUpdateHotelContent(HotelView hotelview) {
+		this.hotelView = hotelview;
+
+		fieldBox = new ComboBox<>(null, this.editableField);
+		fieldBox.setPlaceholder("Please select field");
+		fieldBox.setEmptySelectionAllowed(false);
+		fieldBox.setWidth(100, Sizeable.Unit.PERCENTAGE);
+
+		HorizontalLayout buttons = new HorizontalLayout();
+		buttons.addComponents(update, cancel);
+		layout.addComponents(fieldBox, binderHotelEditForm.getName(), buttons);
+		addComponent(layout);
+
+		update.addClickListener(e -> {
+
+			for (Hotel h : hotels) {
+
+				Hotel hotel = changeFieldValueHotel(h);
+
+				if (hotel != null) {
+					save(hotel);
+				}
+			}
+		});
+
+		cancel.addClickListener(e -> {
+			hotelview.updateList();
+		});
+
+		fieldBox.addValueChangeListener(e -> {
+
+			layout.removeAllComponents();
+
+			if (e.getValue().equals(HotelHelper.NAME)) {
+				binderHotelEditForm.getName().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getName(), buttons);
+			} else if (e.getValue().equals(HotelHelper.OPERATES_FROM)) {
+				binderHotelEditForm.getOperatesFrom().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getOperatesFrom(), buttons);
+			} else if (e.getValue().equals(HotelHelper.ADDRESS)) {
+				binderHotelEditForm.getAddress().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getAddress(), buttons);
+			} else if (e.getValue().equals(HotelHelper.RATING)) {
+				binderHotelEditForm.getRating().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getRating(), buttons);
+			} else if (e.getValue().equals(HotelHelper.CATEGORY)) {
+				binderHotelEditForm.getCategory().clear();
+				binderHotelEditForm.getCategory().setItems(categoryService.findAll());
+				layout.addComponents(fieldBox, binderHotelEditForm.getCategory(), buttons);
+			} else if (e.getValue().equals(HotelHelper.DESCRIPTION)) {
+				binderHotelEditForm.getDescription().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getDescription(), buttons);
+			} else if (e.getValue().equals(HotelHelper.URL)) {
+				binderHotelEditForm.getUrl().clear();
+				layout.addComponents(fieldBox, binderHotelEditForm.getUrl(), buttons);
+			}
+		});
+	}
 
 	public static PopupUpdateHotelContent getInstance(HotelView hotelview) {
 
@@ -56,113 +117,92 @@ public class PopupUpdateHotelContent extends VerticalLayout {
 		this.hotels = hotels;
 	}
 
-	private PopupUpdateHotelContent(HotelView hotelview) {
-		this.hotelView = hotelview;
+	public void updateCategoryList() {
+		binderHotelEditForm.getCategory().setItems(categoryService.findAll());
+	}
 
-		fieldBox = new ComboBox<>(null, this.editableField);
-		fieldBox.setCaption("Please select field");
-		fieldBox.setWidth(100, Sizeable.Unit.PERCENTAGE);
+	public void save(Hotel h) {
 
-		HorizontalLayout buttons = new HorizontalLayout();
-		buttons.addComponents(update, cancel);
-		layout.addComponents(fieldBox, binderHotelEditForm.getName(), buttons);
-		addComponent(layout);
+		binderHotelEditForm.getBinder().readBean(h);
 
-		update.addClickListener(e -> {
+		if (binderHotelEditForm.getBinder().isValid()) {
 
-			for (Hotel hotel : hotels) {
-				String nameField = fieldBox.getValue();
-				Field f = null;
-				Hotel h = null;
+			try {
+				binderHotelEditForm.getBinder().writeBean(h);
+			} catch (ValidationException e) {
+				Notification.show("Unable to save!" + e.getMessage(), Type.HUMANIZED_MESSAGE);
+			}
+
+			hotelService.save(h);
+			hotelView.updateList();
+		} else {
+			Notification.show("Unable to save! Please review errors and fix them.", Type.WARNING_MESSAGE);
+
+		}
+		binderHotelEditForm.getBinder().removeBean();
+	}
+
+	public Hotel changeFieldValueHotel(Hotel h) {
+
+		String nameField = fieldBox.getValue();
+		if (nameField == null) {
+			Notification.show("Unable to save! Please review errors and fix them.", Type.WARNING_MESSAGE);
+			return null;
+		}
+		Field f = null;
+		Hotel hotel = null;
+
+		try {
+
+			hotel = h.clone();
+
+			if (nameField.equals(HotelHelper.RATING)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.RATING.toLowerCase());
+				f.setAccessible(true);
+				f.set(hotel, Integer.parseInt(binderHotelEditForm.getRating().getValue().toString()));
+
+			} else if (nameField.equals(HotelHelper.CATEGORY)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.CATEGORY.toLowerCase());
+				f.setAccessible(true);
+				f.set(hotel, (Category) binderHotelEditForm.getCategory().getValue());
+
+			} else if (nameField.equals(HotelHelper.OPERATES_FROM)) {
+				f = hotel.getClass().getDeclaredField("operatesFrom");
+				f.setAccessible(true);
+				f.set(hotel, Date.from(binderHotelEditForm.getOperatesFrom().getValue()
+						.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
+
+			} else if (nameField.equals(HotelHelper.DESCRIPTION)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.DESCRIPTION.toLowerCase());
+				f.setAccessible(true);
 				try {
-					h = hotel.clone();
-
-					if (nameField.equals(HotelHelper.RATING)) {
-						f = h.getClass().getDeclaredField(HotelHelper.RATING.toLowerCase());
-						f.setAccessible(true);
-						f.set(h, Integer.parseInt(valueTextField.toString()));
-					} else if (nameField.equals(HotelHelper.CATEGORY)) {
-						f = h.getClass().getDeclaredField(HotelHelper.CATEGORY.toLowerCase());
-						f.setAccessible(true);
-						f.set(h, (Category) valueTextField);
-					} else if (nameField.equals(HotelHelper.OPERATES_FROM)) {
-						f = h.getClass().getDeclaredField("operatesFrom");
-						f.setAccessible(true);
-						f.set(h, Date.from(binderHotelEditForm.getOperatesFrom().getValue()
-								.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
-					} else {
-						f = h.getClass().getDeclaredField(nameField.toLowerCase());
-						f.setAccessible(true);
-						f.set(h, valueTextField.toString());
-					}
-
-				} catch (NoSuchFieldException | SecurityException e1) {
-					e1.printStackTrace();
-				} catch (IllegalArgumentException e1) {
-					e1.printStackTrace();
-				} catch (IllegalAccessException e1) {
-					e1.printStackTrace();
-				} catch (IndexOutOfBoundsException e1) {
-					e1.printStackTrace();
-				} catch (CloneNotSupportedException e2) {
-					e2.printStackTrace();
+					f.set(hotel, binderHotelEditForm.getDescription().getValue().toString());
+				} catch (NullPointerException ex) {
+					f.set(hotel, "");
 				}
-
-				binderHotelEditForm.getBinder().readBean(h);
-				if (binderHotelEditForm.getBinder().isValid()) {
-					try {
-						binderHotelEditForm.getBinder().writeBean(h);
-					} catch (ValidationException e1) {
-						e1.printStackTrace();
-					}
-					hotelService.save(h);
-					hotelview.updateList();
-				} else {
-					System.out.println(h.toString() + "toString");
-					Notification.show("Unable to save! Please review errors and fix them.", Type.WARNING_MESSAGE);
-				}
-			}
-			
-/*			binderHotelEditForm.getName().clear();
-			binderHotelEditForm.getOperatesFrom().clear();
-			binderHotelEditForm.getRating().clear();
-			binderHotelEditForm.getAddress().clear();
-			binderHotelEditForm.getCategory().clear();
-			binderHotelEditForm.getDescription().clear();
-			binderHotelEditForm.getUrl().clear();*/
-
-		});
-
-		cancel.addClickListener(e -> {
-			hotelview.updateList();
-		});
-
-		fieldBox.addValueChangeListener(e -> {
-
-			layout.removeAllComponents();
-
-			if (e.getValue().equals(HotelHelper.NAME)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getName(), buttons);
-			} else if (e.getValue().equals(HotelHelper.OPERATES_FROM)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getOperatesFrom(), buttons);
-			} else if (e.getValue().equals(HotelHelper.ADDRESS)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getAddress(), buttons);
-			} else if (e.getValue().equals(HotelHelper.RATING)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getRating(), buttons);
-			} else if (e.getValue().equals(HotelHelper.CATEGORY)) {
-				binderHotelEditForm.getCategory().setItems(categoryService.findAll());
-				layout.addComponents(fieldBox, binderHotelEditForm.getCategory(), buttons);
-			} else if (e.getValue().equals(HotelHelper.DESCRIPTION)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getDescription(), buttons);
-			} else if (e.getValue().equals(HotelHelper.URL)) {
-				layout.addComponents(fieldBox, binderHotelEditForm.getUrl(), buttons);
+			} else if (nameField.equals(HotelHelper.NAME)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.NAME.toLowerCase());
+				f.setAccessible(true);
+				f.set(hotel, binderHotelEditForm.getName().getValue().toString());
+			} else if (nameField.equals(HotelHelper.ADDRESS)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.ADDRESS.toLowerCase());
+				f.setAccessible(true);
+				f.set(hotel, binderHotelEditForm.getAddress().getValue().toString());
+			} else if (nameField.equals(HotelHelper.URL)) {
+				f = hotel.getClass().getDeclaredField(HotelHelper.URL.toLowerCase());
+				f.setAccessible(true);
+				f.set(hotel, binderHotelEditForm.getUrl().getValue().toString());
 			}
 
-		});
+		} catch (NoSuchFieldException | IllegalAccessException | CloneNotSupportedException ex) {
+			LOGGER.log(Level.SEVERE, null, ex);
+			hotel = null;
+		} catch (NumberFormatException | ClassCastException | NullPointerException ex) {
+			Notification.show("Unable to save! Please review errors and fix them.", Type.WARNING_MESSAGE);
+			hotel = null;
+		}
 
-		binderHotelEditForm.getBinder().addValueChangeListener(e -> {
-			valueTextField = e.getValue();
-		});
+		return hotel;
 	}
 
 }
